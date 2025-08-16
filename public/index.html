@@ -9,15 +9,16 @@
   input{border:1px solid #e5e7eb;border-radius:10px}
   button{border:0;border-radius:10px;background:#111827;color:#fff;cursor:pointer}
   .muted{opacity:.75}.ok{color:#047857}.err{color:#b91c1c}
+  code{background:#f3f4f6;padding:.1rem .35rem;border-radius:6px}
 </style>
 
 <h1>Shortlink Generator</h1>
-<p class="muted">Contoh: <code>https://short.ricoagista.me/google</code> → <code>https://google.com</code></p>
+<p class="muted">Format: <code>https://short.ricoagista.me/s/&lt;alias&gt;</code></p>
 
 <form id="f">
-  <input id="key" pattern="[A-Za-z0-9_-]{1,48}" placeholder="alias (opsional)">
+  <input id="key" pattern="[A-Za-z0-9_-]{1,48}" placeholder="alias (opsional, mis. google)">
   <input id="long" type="url" required placeholder="https://target-url...">
-  <button>Buat</button>
+  <button type="submit">Buat</button>
 </form>
 <p id="out" class="muted"></p>
 
@@ -26,13 +27,22 @@ const out = document.getElementById('out');
 document.getElementById('f').addEventListener('submit', async (e) => {
   e.preventDefault();
   out.className='muted'; out.textContent='Menyimpan...';
+
   try{
     const body = { key: key.value.trim(), url: long.value.trim() };
-    const r = await fetch('/api/new',{ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
-    const j = await r.json(); if(!r.ok || !j.ok) throw new Error(j.error||r.statusText);
-    const shortUrl = location.origin + '/' + j.key;
-    out.className='ok'; out.innerHTML = `✅ <a target="_blank" href="${shortUrl}">${shortUrl}</a>`;
+    const r = await fetch('/api/new', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const j = await r.json();
+    if (!r.ok || !j.ok) throw new Error(j.error || r.statusText);
+
+    out.className='ok';
+    out.innerHTML = `✅ <a href="${j.short}" target="_blank" rel="noopener">${j.short}</a>`;
     e.target.reset();
-  }catch(err){ out.className='err'; out.textContent='❌ '+err.message; }
+  }catch(err){
+    out.className='err'; out.textContent='❌ ' + err.message;
+  }
 });
 </script>
